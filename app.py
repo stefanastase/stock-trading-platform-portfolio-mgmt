@@ -17,22 +17,6 @@ def get_portfolio(client_ID):
     try:
         connection = psycopg2.connect(host=host, dbname=db_name, user=db_user, password=db_pass)
         cursor = connection.cursor()
-        exists_query = "SELECT EXISTS(SELECT * FROM information_schema.tables WHERE table_name=%s)"
-        cursor.execute(exists_query, (client_ID,))
-        exists = cursor.fetchone()[0]
-
-        if not exists:
-            # Create table
-            create_query = f"\
-                CREATE TABLE {client_ID} (\
-                \"ID\" integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 100 CACHE 1 ),\
-                \"Name\" character varying(128) COLLATE pg_catalog.\"default\" NOT NULL,\
-                \"Quantity\" integer  NOT NULL,\
-                CONSTRAINT portfolio_pkey PRIMARY KEY (\"ID\"),\
-                CONSTRAINT \"Name\" UNIQUE (\"Name\"))"
-            
-            cursor.execute(create_query)
-            connection.commit()
 
         # Get components of portfolio
         select_query = f"SELECT * from {client_ID}"
