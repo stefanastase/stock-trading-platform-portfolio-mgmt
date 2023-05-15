@@ -52,10 +52,27 @@ def update_portfolio(client_ID):
         try:
             connection = psycopg2.connect(host=host, dbname=db_name, user=db_user, password=db_pass)
             cursor = connection.cursor()
-            query = f"\
-                UPDATE {client_ID}\
-                SET \"Quantity\" = {quantity}\
-                WHERE \"Name\" = \'{name}\'"
+
+            # Search the symbol inside the portfolio
+            select_query = f"SELECT * from {client_ID} WHERE \"Name\" = '{name}'"
+            cursor.execute(select_query)
+            records = cursor.fetchall()
+            if len(records) == 0:
+                # Symbol not found, insert it
+                query = f"INSERT INTO {client_ID} (\"Name\", \"Quantity\") VALUES ('name', {quantity})"
+                cursor.execute(query)
+
+            if quantity == 0:
+                # Delete the entry in portfolio
+                query = f"\
+                    DELETE FROM {client_ID}\
+                    WHERE \"Name\" = \'{name}\'"
+            else:
+                # Update the entry in portfolio
+                query = f"\
+                    UPDATE {client_ID}\
+                    SET \"Quantity\" = {quantity}\
+                    WHERE \"Name\" = \'{name}\'"
             
             cursor.execute(query)
             connection.commit()
