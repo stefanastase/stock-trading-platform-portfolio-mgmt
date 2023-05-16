@@ -46,20 +46,22 @@ def get_portfolio(client_ID):
 def update_portfolio(client_ID):
     payload = request.get_json(force=True)
 
-    for key in payload.keys():
-        name = key
-        quantity = int(payload[key])
-        try:
-            connection = psycopg2.connect(host=host, dbname=db_name, user=db_user, password=db_pass)
-            cursor = connection.cursor()
-
+    connection = None
+    try:
+        connection = psycopg2.connect(host=host, dbname=db_name, user=db_user, password=db_pass)
+        cursor = connection.cursor()
+        for key in payload.keys():
+            name = key
+            quantity = int(payload[key])
+        
             # Search the symbol inside the portfolio
             select_query = f"SELECT * from {client_ID} WHERE \"Name\" = '{name}'"
             cursor.execute(select_query)
             records = cursor.fetchall()
-            if len(records) == 0:
+
+            if len(records) == 0 and quantity != 0:
                 # Symbol not found, insert it
-                query = f"INSERT INTO {client_ID} (\"Name\", \"Quantity\") VALUES ('name', {quantity})"
+                query = f"INSERT INTO {client_ID} (\"Name\", \"Quantity\") VALUES ('{name}', {quantity})"
                 cursor.execute(query)
 
             if quantity == 0:
@@ -73,23 +75,23 @@ def update_portfolio(client_ID):
                     UPDATE {client_ID}\
                     SET \"Quantity\" = {quantity}\
                     WHERE \"Name\" = \'{name}\'"
-            
+                
             cursor.execute(query)
-            connection.commit()
 
-            return Response(status=200)
-        except (Exception, psycopg2.DatabaseError) as error:
-            print(error)
-            if connection is not None:
-                cursor.close()
-                connection.close()
-            return Response(status=400)
+        connection.commit()
 
-        finally:
-            if connection is not None:
-                cursor.close()
-                connection.close()
-    return Response(status=400)
+        return Response(status=200)
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+        if connection is not None:
+            cursor.close()
+            connection.close()
+        return Response(status=400)
+
+    finally:
+        if connection is not None:
+            cursor.close()
+            connection.close()
 
 if __name__ == "__main__":
     app.run(debug=False)
