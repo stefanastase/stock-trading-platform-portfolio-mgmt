@@ -52,7 +52,7 @@ def update_portfolio(client_ID):
         cursor = connection.cursor()
         for key in payload.keys():
             name = key
-            quantity = int(payload[key])
+            quantity = float(payload[key])
         
             # Search the symbol inside the portfolio
             select_query = f"SELECT * from {client_ID} WHERE \"Name\" = '{name}'"
