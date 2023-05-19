@@ -9,12 +9,16 @@ app = Flask(__name__)
 host = os.getenv('HOST_NAME')
 db_name = os.getenv('DB_NAME')
 db_user = os.getenv('DB_USER')
-db_pass = os.getenv('DB_PASSWORD')
+db_pass_file = os.getenv('DB_PASSWORD_FILE')
 
 @app.route("/portfolio/<client_ID>", methods=["GET"])
 def get_portfolio(client_ID):
     connection = None
     try:
+        file = open(db_pass_file, "r")
+        db_pass = file.read()
+        file.close()
+
         connection = psycopg2.connect(host=host, dbname=db_name, user=db_user, password=db_pass)
         cursor = connection.cursor()
 
@@ -48,6 +52,10 @@ def update_portfolio(client_ID):
 
     connection = None
     try:
+        file = open(db_pass_file, "r")
+        db_pass = file.read()
+        file.close()
+        
         connection = psycopg2.connect(host=host, dbname=db_name, user=db_user, password=db_pass)
         cursor = connection.cursor()
         for key in payload.keys():
